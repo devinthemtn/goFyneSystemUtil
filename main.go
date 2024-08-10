@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"os"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -10,6 +11,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+
 	// "os"
 	"os/exec"
 )
@@ -18,6 +20,11 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("Main window")
 
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("error getting users's home: ", err)
+	}
+	usrConfigDir := homeDir + "/.config/katSystemUtil"
 	w.SetContent(widget.NewLabel("Hello World!"))
 	factText := widget.NewLabel("")
 	button2 := widget.NewButton("Speed Test", func() {
@@ -47,17 +54,23 @@ func main() {
 		// fmt.Println(string(output))
 		factText.SetText(string(output))
 	})
-	button3 := widget.NewButton("Test", func() {
+	button3 := widget.NewButton("Time Checkin", func() {
 		// =====> do some stuff <==== //
 		fmt.Println("I was pressed")
-		factText.SetText("running speedtest")
-		// cmd := exec.Command("ls", "-l")
-		// output, err := cmd.Output()
-		// if err != nil {
-		// 	fmt.Println("Error executing command:", err)
-		// 	return
-		// }
-		// // fmt.Println(string(output))
+		//TODO: check if logfile exists || create it
+		myconfigDir, err := dirExists(usrConfigDir)
+		if err != nil {
+			fmt.Println("error with dir: ", err)
+		}
+		if myconfigDir == false {
+			fmt.Println("no dir exists,creating dir: ", usrConfigDir)
+
+			if err := os.MkdirAll(usrConfigDir, os.ModePerm); err != nil {
+				fmt.Println("error ", err)
+			}
+		}
+
+		//TODO: write date stamp to file
 		// factText.SetText(string(output))
 	})
 
@@ -76,4 +89,15 @@ func main() {
 	w.SetContent(vBox)
 	w.Show()
 	a.Run()
+}
+
+func dirExists(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != err {
+		return false, err
+	}
+	return info.IsDir(), nil
 }
