@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"os"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -57,7 +58,7 @@ func main() {
 	button3 := widget.NewButton("Time Checkin", func() {
 		// =====> do some stuff <==== //
 		fmt.Println("I was pressed")
-		//TODO: check if logfile exists || create it
+		// check if config dir exists & if not tries to create it
 		myconfigDir, err := dirExists(usrConfigDir)
 		if err != nil {
 			fmt.Println("error with dir: ", err)
@@ -69,6 +70,9 @@ func main() {
 				fmt.Println("error ", err)
 			}
 		}
+		// checks for the file
+		appendToConfigFile("some stuff"+time.Now().String()+"\n", usrConfigDir+"/test.txt")
+		// writeToConfigFile("some stuff", usrConfigDir+"/test.txt")
 
 		//TODO: write date stamp to file
 		// factText.SetText(string(output))
@@ -100,4 +104,40 @@ func dirExists(path string) (bool, error) {
 		return false, err
 	}
 	return info.IsDir(), nil
+	//TODO: check if logfile exists || create it
+}
+
+func writeToConfigFile(myTxt string, filename string) error {
+	err := os.WriteFile(filename, []byte(myTxt), 0644)
+	if err != nil {
+		fmt.Println("Error writting file: ", err)
+	}
+	return nil
+}
+
+func appendToConfigFile(myTxt string, filename string) error {
+	_, err := os.Stat(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			file, err := os.Create(filename)
+			if err != nil {
+				fmt.Println("error creating file", err)
+			}
+			file.Close()
+		} else {
+			fmt.Println("error getting info", err)
+		}
+	}
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("error opening file: ", err)
+		return nil
+	}
+	defer file.Close()
+
+	_, err = file.Write([]byte(myTxt))
+	if err != nil {
+		fmt.Println("error writing to file: ", err)
+	}
+	return nil
 }
